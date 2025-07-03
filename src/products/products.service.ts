@@ -6,10 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
+
+interface DatabaseError {
+  code?: string;
+  detail?: string;
+}
 
 @Injectable()
 export class ProductsService {
@@ -30,8 +36,12 @@ export class ProductsService {
     }
   }
 
-  findAll() {
-    return this.productRepository.find();
+  findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    return this.productRepository.find({
+      take: limit,
+      skip: offset,
+    });
   }
 
   async findOne(id: string) {
@@ -66,12 +76,13 @@ export class ProductsService {
   }
 
   private handleDBExceptions(error: any) {
-    if (error.code === '23505') {
-      throw new BadRequestException(error.detail);
+    const dbError = error as DatabaseError;
+    if (dbError.code === '23505') {
+      throw new BadRequestException(dbError.detail);
     }
-    if (error.code === '23503') {
+    if (dbError.code === '23503') {
       throw new BadRequestException(
-        `Product with id ${error.detail.split('=')[1]} is referenced in another entity`,
+        `Product with id ${dbError.detail?.split('=')[1]} is referenced in another entity`,
       );
     }
     this.logger.error(error);
