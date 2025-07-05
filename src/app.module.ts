@@ -20,7 +20,7 @@ import { CommonModule } from './common/common.module';
       synchronize: true, // TODO: false in production
     }),
     ProductsModule,
-    CommonModule
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService],
