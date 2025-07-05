@@ -10,7 +10,7 @@ import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { Repository } from 'typeorm';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Product } from './entities/product.entity';
+import { Product, ProductImage } from './entities';
 import { validate as isUUID } from 'uuid';
 
 interface DatabaseError {
@@ -25,24 +25,32 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
   ) {}
 
   async create(createProductDto: CreateProductDto) {
     try {
-      const product = this.productRepository.create(createProductDto);
+      const product = this.productRepository.create({
+        ...createProductDto,
+        images: createProductDto.images?.map((image) =>
+          this.productImageRepository.create({ url: image }),
+        ),
+      });
       await this.productRepository.save(product);
-      return product;
+      return this.prettifyResponse(product);
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
-  findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.productRepository.find({
+    const products = await this.productRepository.find({
       take: limit,
       skip: offset,
     });
+    return products.map((product) => this.prettifyResponse(product));
   }
 
   async findOne(term: string) {
@@ -57,19 +65,23 @@ export class ProductsService {
           title: term.toLowerCase(),
           slug: term.toLowerCase(),
         })
+        .leftJoinAndSelect('prod.images', 'prodImages')
         .getOne();
     }
 
     if (!product) {
       throw new NotFoundException(`Product with term ${term} not found`);
     }
-    return product;
+    return this.prettifyResponse(product);
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
     const product = await this.productRepository.preload({
       id,
       ...updateProductDto,
+      images: updateProductDto.images?.map((image) =>
+        this.productImageRepository.create({ url: image }),
+      ),
     });
 
     if (!product) {
@@ -77,20 +89,27 @@ export class ProductsService {
     }
 
     try {
-      await this.productRepository.update(id, updateProductDto);
+      await this.productRepository.update(id, {
+        ...updateProductDto,
+        images: product.images,
+      });
     } catch (error) {
       this.handleDBExceptions(error);
     }
 
-    return this.productRepository.save({
-      ...product,
-      ...updateProductDto,
-    });
+    return this.prettifyResponse(product);
   }
 
   async remove(id: string) {
     const product = await this.findOne(id);
-    await this.productRepository.remove(product);
+    await this.productRepository.remove(product as Product);
+  }
+
+  private prettifyResponse(product: Product) {
+    return {
+      ...product,
+      images: product.images?.map((image) => image.url),
+    };
   }
 
   private handleDBExceptions(error: any) {
