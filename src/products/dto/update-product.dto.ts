@@ -8,14 +8,10 @@ import {
   IsOptional,
   IsPositive,
   IsString,
-  IsUUID,
   MinLength,
 } from 'class-validator';
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
-  @IsUUID()
-  id: string;
-
   @IsString()
   @MinLength(1)
   title: string;
