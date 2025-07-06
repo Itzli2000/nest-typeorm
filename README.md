@@ -19,19 +19,25 @@ cp .env.example .env
 
 3. Change/add env variables
 
-4. Run Project DB
-
-```bash
-docker-compose up -d
-```
-
-5. Install dependencies
+4. Install dependencies
 
 ```bash
 yarn install
 ```
 
-6. Run the project
+5. Run Project DB
+
+```bash
+docker-compose up -d
+```
+
+6. Run the seed
+
+```bash
+http://localhost:3000/api/seed
+```
+
+7. Run the project
 
 ```bash
 yarn start:dev
