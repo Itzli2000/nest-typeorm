@@ -46,12 +46,30 @@ export class ProductsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0 } = paginationDto;
-    const products = await this.productRepository.find({
+    const { limit = 10, offset = 0, page } = paginationDto;
+
+    const calculatedOffset = page ? (page - 1) * limit : offset;
+
+    const [products, totalCount] = await this.productRepository.findAndCount({
       take: limit,
-      skip: offset,
+      skip: calculatedOffset,
     });
-    return products.map((product) => this.prettifyResponse(product));
+
+    const totalPages = Math.ceil(totalCount / limit);
+    const currentPage = page || Math.floor(calculatedOffset / limit) + 1;
+
+    return {
+      data: products.map((product) => this.prettifyResponse(product)),
+      pagination: {
+        totalCount,
+        totalPages,
+        currentPage,
+        offset: calculatedOffset,
+        limit,
+        hasNextPage: currentPage < totalPages,
+        hasPreviousPage: currentPage > 1,
+      },
+    };
   }
 
   async findOneElement(term: string) {

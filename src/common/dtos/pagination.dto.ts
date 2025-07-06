@@ -15,4 +15,11 @@ export class PaginationDto {
   @Min(0, { message: 'offset must be greater than or equal to 0' })
   @Type(() => Number)
   offset?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  @Min(1, { message: 'page must be greater than 0' })
+  @Type(() => Number)
+  page?: number;
 }
