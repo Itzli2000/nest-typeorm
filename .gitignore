@@ -85,3 +85,8 @@ public/uploads/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Product images
+static/products/*
+!static/products/.gitkeep
+
