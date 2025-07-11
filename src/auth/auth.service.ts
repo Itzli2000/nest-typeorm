@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { DatabaseError } from 'pg';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -18,11 +19,15 @@ export class AuthService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      this.userRepository.create(createUserDto);
-      await this.userRepository.save(createUserDto);
+      const { password, ...userData } = createUserDto;
+      const user = this.userRepository.create({
+        ...userData,
+        password: bcrypt.hashSync(password, 10),
+      });
+      await this.userRepository.save(user);
       return {
         message: 'User created successfully',
-        user: createUserDto,
+        user,
       };
     } catch (error) {
       this.handleDbErrors(error);
