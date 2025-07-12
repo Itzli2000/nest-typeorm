@@ -11,7 +11,7 @@ import { DatabaseError } from 'pg';
 import { Repository } from 'typeorm';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { User } from './entities/user.entity';
-import { JwtPayload } from './types/jwt-payload.type';
+import { JwtPayload } from './types';
 
 @Injectable()
 export class AuthService {
