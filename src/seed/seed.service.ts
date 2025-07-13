@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
+import { AuthService } from '../auth/auth.service';
 import { ProductsService } from '../products/products.service';
 import { initialData, SEED_EXECUTED } from './data/initialData';
 
@@ -9,6 +10,7 @@ import { initialData, SEED_EXECUTED } from './data/initialData';
 export class SeedService {
   constructor(
     private readonly productService: ProductsService,
+    private readonly authService: AuthService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
@@ -31,14 +33,27 @@ export class SeedService {
   }
 
   private async insertNewUsers(): Promise<User> {
-    const users = initialData.users;
-    const Users: User[] = [];
-    users.forEach((user) => {
-      Users.push(this.userRepository.create(user));
-    });
+    const seedUsers = initialData.users;
+    const createdUsers: User[] = [];
 
-    const savedUsers = await this.userRepository.save(Users);
-    return savedUsers[0];
+    for (const userData of seedUsers) {
+      const { password, ...userInfo } = userData;
+      const createdUser = await this.authService.create({
+        ...userInfo,
+        password,
+      });
+
+      if (createdUser) {
+        const savedUser = await this.userRepository.findOne({
+          where: { email: createdUser.email },
+        });
+        if (savedUser) {
+          createdUsers.push(savedUser);
+        }
+      }
+    }
+
+    return createdUsers[0];
   }
 
   private async deleteTables() {
