@@ -8,8 +8,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
-import { User } from 'src/auth/entities/user.entity';
 import { META_ROLES } from '../../decorators/role-protected.decorator';
+import { User } from '../../entities/user.entity';
 import { ValidRoles } from '../../types';
 
 @Injectable()
