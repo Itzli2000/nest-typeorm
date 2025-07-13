@@ -3,8 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CommonModule } from './common/common.module';
 import { FilesModule } from './files/files.module';
 import { ProductsModule } from './products/products.module';
@@ -33,7 +31,5 @@ import { AuthModule } from './auth/auth.module';
     FilesModule,
     AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
