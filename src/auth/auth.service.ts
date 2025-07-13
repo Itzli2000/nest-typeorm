@@ -59,6 +59,13 @@ export class AuthService {
     };
   }
 
+  checkStatus(user: User) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id, email: user.email }),
+    };
+  }
+
   private handleDbErrors(error: any) {
     const dbError = error as DatabaseError;
     if (dbError.code === '23505') {
